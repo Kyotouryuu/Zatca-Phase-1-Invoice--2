@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ZatcaDotNet")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+88d3b676711219960d77ecd12ac247b51d44a5c3")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+37a0186d13a4e0b353541ba90cdc1d24f8c67e0b")]
 [assembly: System.Reflection.AssemblyProductAttribute("ZatcaDotNet")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ZatcaDotNet")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

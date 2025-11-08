@@ -73,6 +73,13 @@ static string BuildFormHtml()
         </div>
 
         <div class=""row"">
+            <div class=""form-group"" style=""flex: 0 0 48%;"">
+                <label for=""customer"">اسم العميل</label>
+                <input type=""text"" id=""customer"" name=""customer"" placeholder=""اسم العميل"">
+            </div>
+        </div>
+
+        <div class=""row"">
             <div class=""form-group"">
                 <label for=""before_tax"">المبلغ قبل الضريبة *</label>
                 <input type=""number"" id=""before_tax"" name=""before_tax"" step=""0.01"" class=""num no-spin"" inputmode=""decimal"" required>
@@ -273,7 +280,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </html>";
 }
 
-static string BuildInvoiceHtml(string seller, string vat, string subtotal, string vatAmount, string grandTotal, string qrB64, string invoiceNo, string invoiceDate, (string name, int qty, decimal? price)[] items, string? notes, bool showPrices = false)
+static string BuildInvoiceHtml(string seller, string vat, string subtotal, string vatAmount, string grandTotal, string qrB64, string invoiceNo, string invoiceDate, (string name, int qty, decimal? price)[] items, string? notes, string? customerName = null, bool showPrices = false)
 {
 	// Minimal HTML mirroring Laravel view layout; QR is embedded as base64 PNG
 	return $@"
@@ -286,12 +293,16 @@ static string BuildInvoiceHtml(string seller, string vat, string subtotal, strin
     <style>
         body {{ font-family: Tahoma, Arial, Helvetica, sans-serif; padding: 24px; color: #000; }}
         .wrap {{ max-width: 820px; margin: 0 auto; border: 1px solid #e5e5e5; padding: 16px; border-radius: 8px; }}
-        .header {{ border-bottom: 1px solid #ddd; padding-bottom: 12px; margin-bottom: 16px; }}
-        .title {{ font-size: 20px; font-weight: 700; margin-bottom: 6px; }}
-        .row {{ display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }}
-        .stack {{ display: flex; flex-direction: column; gap: 4px; }}
-        .label {{ color: #333; font-size: 13px; }}
-        .value {{ font-weight: 700; }}
+        .header {{ border-bottom: 1px solid #ddd; padding-bottom: 10px; margin-bottom: 12px; }}
+        .title {{ font-size: 20px; font-weight: 700; margin-bottom: 8px; }}
+        .meta-grid {{ display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; }}
+        .meta-column {{ display: flex; flex-direction: column; gap: 6px; flex: 0 0 auto; }}
+        .meta-column.left {{ align-items: flex-end; }}
+        .meta-column.right {{ align-items: flex-start; }}
+        .meta-item {{ display: flex; gap: 6px; white-space: nowrap; }}
+        .label {{ color: #555; font-size: 13px; font-weight: normal; }}
+        .value {{ font-weight: normal; color: #333; }}
+        .value.light {{ font-weight: normal; color: #333; }}
         .num {{ direction: ltr; unicode-bidi: embed; font-variant-numeric: tabular-nums; letter-spacing: .2px; }}
         table {{ width: 100%; border-collapse: collapse; margin-top: 6px; }}
         caption.desc {{ caption-side: top; text-align: right; padding: 6px 0; font-size: 14px; color: #333; }}
@@ -310,22 +321,15 @@ static string BuildInvoiceHtml(string seller, string vat, string subtotal, strin
 <div class=""wrap"">
     <div class=""header"">
         <div class=""title"">فاتورة ضريبية مبسطة</div>
-        <div class=""row"">
-            <div class=""stack"">
-                <div class=""label"">رقم الفاتورة</div>
-                <div class=""value num"">{invoiceNo}</div>
+        <div class=""meta-grid"">
+            <div class=""meta-column left"">
+                <div class=""meta-item""><div class=""label"">رقم الفاتورة</div><div class=""value light num"">{invoiceNo}</div></div>
+                <div class=""meta-item""><div class=""label"">تاريخ الفاتورة</div><div class=""value light num"">{invoiceDate}</div></div>
             </div>
-            <div class=""stack"">
-                <div class=""label"">تاريخ الفاتورة</div>
-                <div class=""value num"">{invoiceDate}</div>
-            </div>
-            <div class=""stack"">
-                <div class=""label"">البائع</div>
-                <div class=""value"">{seller}</div>
-            </div>
-            <div class=""stack"">
-                <div class=""label"">الرقم الضريبي</div>
-                <div class=""value num"">{vat}</div>
+            <div class=""meta-column right"">
+                {(string.IsNullOrWhiteSpace(customerName) ? "" : $@"<div class=""meta-item""><div class=""label"">اسم العميل</div><div class=""value"">{System.Net.WebUtility.HtmlEncode(customerName)}</div></div>")}
+                <div class=""meta-item""><div class=""label"">البائع</div><div class=""value"">{System.Net.WebUtility.HtmlEncode(seller)}</div></div>
+                <div class=""meta-item""><div class=""label"">الرقم الضريبي</div><div class=""value num"">{vat}</div></div>
             </div>
         </div>
     </div>
@@ -461,6 +465,7 @@ app.MapPost("/invoice/generate", async (HttpRequest req) =>
 {
 	var form = await req.ReadFormAsync();
 	
+	var customer = form["customer"].ToString();
 	var seller = form["seller"].ToString();
 	if (string.IsNullOrWhiteSpace(seller)) seller = "السادة جامعة حائل";
 	
@@ -535,6 +540,7 @@ app.MapPost("/invoice/generate", async (HttpRequest req) =>
 		invoiceDate: invoiceDate,
 		items: items.ToArray(),
 		notes: notes,
+		customerName: string.IsNullOrWhiteSpace(customer) ? null : customer,
 		showPrices: showPrices
 	);
 
