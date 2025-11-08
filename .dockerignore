@@ -1,0 +1,14 @@
+bin/
+obj/
+*.md
+*.git
+.gitignore
+.vs/
+.vscode/
+*.user
+*.suo
+*.cache
+*.dll
+*.pdb
+*.exe
+*.log

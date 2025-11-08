@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "dgSpecHash": "nrTaM0AmOiU=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Kyo\\OneDrive\\Desktop\\zatca dotnet\\ZatcaDotNet\\ZatcaDotNet.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Kyo\\.nuget\\packages\\qrcoder\\1.4.3\\qrcoder.1.4.3.nupkg.sha512",
+    "C:\\Users\\Kyo\\.nuget\\packages\\microsoft.netcore.app.ref\\8.0.21\\microsoft.netcore.app.ref.8.0.21.nupkg.sha512",
+    "C:\\Users\\Kyo\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\8.0.21\\microsoft.windowsdesktop.app.ref.8.0.21.nupkg.sha512",
+    "C:\\Users\\Kyo\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\8.0.21\\microsoft.aspnetcore.app.ref.8.0.21.nupkg.sha512",
+    "C:\\Users\\Kyo\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\8.0.21\\microsoft.netcore.app.host.win-x64.8.0.21.nupkg.sha512"
+  ],
+  "logs": []
+}
