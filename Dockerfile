@@ -3,11 +3,11 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /app
 
 # Copy csproj and restore dependencies
-COPY ZatcaDotNet/ZatcaDotNet.csproj ./
+COPY ZatcaDotNet.csproj ./
 RUN dotnet restore
 
 # Copy everything else and build
-COPY ZatcaDotNet/. ./
+COPY . ./
 RUN dotnet publish -c Release -o out
 
 # Runtime stage
