@@ -48,11 +48,18 @@ static string BuildFormHtml()
         .help-text { font-size: 12px; color: #666; margin-top: 4px; }
         .row { display: flex; gap: 16px; }
         .row .form-group { flex: 1; }
+        /* Hide number spinners on selected fields */
+        input[type=""number""].no-spin::-webkit-outer-spin-button,
+        input[type=""number""].no-spin::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=""number""].no-spin { -moz-appearance: textfield; }
     </style>
 </head>
 <body>
 <div class=""wrap"">
-    <h1>إنشاء فاتورة ZATCA Phase 1</h1>
+    <h1 style=""display: flex; justify-content: space-between; align-items: center; flex-direction: row-reverse;"">
+        <span>Genius Computers</span>
+        <span>إنشاء فاتورة ZATCA Phase 1</span>
+    </h1>
     <form method=""POST"" action=""/invoice/generate"">
         <div class=""row"">
             <div class=""form-group"">
@@ -67,12 +74,17 @@ static string BuildFormHtml()
 
         <div class=""row"">
             <div class=""form-group"">
-                <label for=""grand_total"">الإجمالي شامل الضريبة *</label>
-                <input type=""number"" id=""grand_total"" name=""grand_total"" step=""0.01"" required value=""99199.00"" class=""num"">
+                <label for=""before_tax"">المبلغ قبل الضريبة *</label>
+                <input type=""number"" id=""before_tax"" name=""before_tax"" step=""0.01"" class=""num no-spin"" inputmode=""decimal"" required>
             </div>
             <div class=""form-group"">
                 <label for=""vat_amount"">مبلغ الضريبة *</label>
-                <input type=""number"" id=""vat_amount"" name=""vat_amount"" step=""0.01"" required value=""12939.00"" class=""num"">
+                <input type=""number"" id=""vat_amount"" name=""vat_amount"" step=""0.01"" class=""num no-spin"" inputmode=""decimal"" required>
+            </div>
+            <div class=""form-group"">
+                <label>الإجمالي شامل الضريبة (معاينة)</label>
+                <div id=""grand_total_preview"" class=""num"">—</div>
+                <input type=""hidden"" id=""grand_total"" name=""grand_total"">
             </div>
         </div>
 
@@ -92,7 +104,7 @@ static string BuildFormHtml()
                 <div class=""item-row"">
                     <input type=""text"" name=""item_name[]"" placeholder=""اسم الصنف"" required>
                     <input type=""number"" name=""item_quantity[]"" placeholder=""الكمية"" min=""1"" required class=""num"">
-                    <input type=""number"" name=""item_price[]"" placeholder=""السعر"" step=""0.01"" min=""0"" class=""num item-price"">
+                    <input type=""number"" name=""item_price[]"" placeholder=""السعر"" step=""0.01"" min=""0"" class=""num item-price no-spin"">
                     <button type=""button"" class=""btn-remove"" onclick=""removeItem(this)"">حذف</button>
                 </div>
             </div>
@@ -109,6 +121,46 @@ static string BuildFormHtml()
 </div>
 <script>
 let showPrices = false;
+const VAT_RATE = 0.15;
+function two(n){ return (isNaN(n) ? 0 : n).toFixed(2); }
+function setPreview(value) {
+    const preview = document.getElementById('grand_total_preview');
+    preview.textContent = value === '' ? '—' : value;
+}
+function recalcFromBeforeTax() {
+    const beforeInput = document.getElementById('before_tax');
+    const vatInput = document.getElementById('vat_amount');
+    const totalHidden = document.getElementById('grand_total');
+    const raw = (beforeInput.value || '').trim();
+    if (raw === '') {
+        totalHidden.value = '';
+        setPreview('');
+        return;
+    }
+    const before = parseFloat(raw) || 0;
+    const vat = parseFloat((before * VAT_RATE).toFixed(2));
+    vatInput.value = two(vat);
+    const total = before + vat;
+    totalHidden.value = two(total);
+    setPreview(two(total));
+}
+function recalcFromVat() {
+    const beforeInput = document.getElementById('before_tax');
+    const vatInput = document.getElementById('vat_amount');
+    const totalHidden = document.getElementById('grand_total');
+    const beforeRaw = (beforeInput.value || '').trim();
+    const vatRaw = (vatInput.value || '').trim();
+    if (beforeRaw === '' && vatRaw === '') {
+        totalHidden.value = '';
+        setPreview('');
+        return;
+    }
+    const before = parseFloat(beforeRaw) || 0;
+    const vat = parseFloat(vatRaw) || 0;
+    const total = before + vat;
+    totalHidden.value = two(total);
+    setPreview(two(total));
+}
 function togglePrices() {
     showPrices = document.getElementById('show_prices').checked;
     const rows = document.querySelectorAll('.item-row');
@@ -127,7 +179,7 @@ function addItem() {
     row.innerHTML = `
         <input type=""text"" name=""item_name[]"" placeholder=""اسم الصنف"" required>
         <input type=""number"" name=""item_quantity[]"" placeholder=""الكمية"" min=""1"" required class=""num"">
-        <input type=""number"" name=""item_price[]"" placeholder=""السعر"" step=""0.01"" min=""0"" class=""num item-price"">
+        <input type=""number"" name=""item_price[]"" placeholder=""السعر"" step=""0.01"" min=""0"" class=""num item-price no-spin"">
         <button type=""button"" class=""btn-remove"" onclick=""removeItem(this)"">حذف</button>
     `;
     container.appendChild(row);
@@ -139,6 +191,83 @@ function removeItem(btn) {
         alert('يجب أن يكون هناك صنف واحد على الأقل');
     }
 }
+const priceInputs = new WeakMap();
+function handlePriceWheel(event) {
+    event.preventDefault();
+    const input = event.target;
+    const currentValue = parseFloat(input.value) || 0;
+    const delta = event.deltaY < 0 ? 1.00 : -1.00;
+    const newValue = Math.max(0, currentValue + delta);
+    input.value = newValue.toFixed(2);
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+}
+function setupPriceInput(input) {
+    if (priceInputs.has(input)) return;
+    let lastValue = parseFloat(input.value) || 0;
+    priceInputs.set(input, { lastValue });
+    
+    input.addEventListener('input', function(e) {
+        const currentValue = parseFloat(input.value) || 0;
+        const data = priceInputs.get(input);
+        const diff = Math.abs(currentValue - data.lastValue);
+        
+        if (diff > 0.005 && diff < 0.015) {
+            const direction = currentValue > data.lastValue ? 1 : -1;
+            const adjustedValue = data.lastValue + (direction * 1.00);
+            input.value = Math.max(0, adjustedValue).toFixed(2);
+            priceInputs.set(input, { lastValue: adjustedValue });
+        } else {
+            priceInputs.set(input, { lastValue: currentValue });
+        }
+    });
+    
+    input.addEventListener('mousedown', function(e) {
+        const rect = input.getBoundingClientRect();
+        const clickX = e.clientX;
+        const isRTL = window.getComputedStyle(input).direction === 'rtl';
+        const spinnerWidth = 20;
+        
+        let clickedSpinner = false;
+        let isIncrement = false;
+        
+        if (isRTL) {
+            if (clickX >= rect.left && clickX <= rect.left + spinnerWidth) {
+                clickedSpinner = true;
+                isIncrement = true;
+            } else if (clickX >= rect.right - spinnerWidth && clickX <= rect.right) {
+                clickedSpinner = true;
+                isIncrement = false;
+            }
+        } else {
+            if (clickX >= rect.right - spinnerWidth && clickX <= rect.right) {
+                clickedSpinner = true;
+                isIncrement = true;
+            } else if (clickX >= rect.left && clickX <= rect.left + spinnerWidth) {
+                clickedSpinner = true;
+                isIncrement = false;
+            }
+        }
+        
+        if (clickedSpinner) {
+            setTimeout(() => {
+                const currentValue = parseFloat(input.value) || 0;
+                const newValue = isIncrement ? currentValue + 1.00 : Math.max(0, currentValue - 1.00);
+                input.value = newValue.toFixed(2);
+                priceInputs.set(input, { lastValue: newValue });
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+            }, 10);
+        }
+    });
+}
+document.addEventListener('DOMContentLoaded', function() {
+    // Pricing inputs setup
+    const beforeInput = document.getElementById('before_tax');
+    const vatInput = document.getElementById('vat_amount');
+    if (beforeInput && vatInput) {
+        beforeInput.addEventListener('input', recalcFromBeforeTax);
+        vatInput.addEventListener('input', recalcFromVat);
+    }
+});
 </script>
 </body>
 </html>";
