@@ -73,9 +73,19 @@ static string BuildFormHtml()
         </div>
 
         <div class=""row"">
-            <div class=""form-group"" style=""flex: 0 0 48%;"">
+            <div class=""form-group"" style=""flex: 1;"">
                 <label for=""customer"">اسم العميل</label>
                 <input type=""text"" id=""customer"" name=""customer"" placeholder=""اسم العميل"">
+            </div>
+            <div class=""form-group"" style=""flex: 1;"">
+                <div class=""toggle-group"">
+                    <input type=""checkbox"" id=""custom_tax"" name=""custom_tax"" onchange=""toggleCustomTax()"">
+                    <label for=""custom_tax"">ضريبة مخصصة</label>
+                </div>
+                <div id=""custom_tax_percentage_container"" style=""display: none; margin-top: 8px;"">
+                    <label for=""custom_tax_percentage"">نسبة الضريبة المخصصة (%)</label>
+                    <input type=""number"" id=""custom_tax_percentage"" name=""custom_tax_percentage"" step=""0.01"" min=""0"" max=""100"" value=""15"" class=""num no-spin"" inputmode=""decimal"" oninput=""updateTaxRate()"">
+                </div>
             </div>
         </div>
 
@@ -128,11 +138,41 @@ static string BuildFormHtml()
 </div>
 <script>
 let showPrices = false;
-const VAT_RATE = 0.15;
+const DEFAULT_VAT_RATE = 0.15;
+function getVatRate() {
+    const customTaxCheckbox = document.getElementById('custom_tax');
+    if (customTaxCheckbox && customTaxCheckbox.checked) {
+        const customTaxPercentage = document.getElementById('custom_tax_percentage');
+        const customRate = parseFloat(customTaxPercentage.value) || 15;
+        return customRate / 100;
+    }
+    return DEFAULT_VAT_RATE;
+}
 function two(n){ return (isNaN(n) ? 0 : n).toFixed(2); }
 function setPreview(value) {
     const preview = document.getElementById('grand_total_preview');
     preview.textContent = value === '' ? '—' : value;
+}
+function toggleCustomTax() {
+    const checkbox = document.getElementById('custom_tax');
+    const container = document.getElementById('custom_tax_percentage_container');
+    if (checkbox.checked) {
+        container.style.display = 'block';
+    } else {
+        container.style.display = 'none';
+    }
+    // Recalculate if before_tax has a value
+    const beforeInput = document.getElementById('before_tax');
+    if (beforeInput.value) {
+        recalcFromBeforeTax();
+    }
+}
+function updateTaxRate() {
+    // Recalculate if before_tax has a value
+    const beforeInput = document.getElementById('before_tax');
+    if (beforeInput.value) {
+        recalcFromBeforeTax();
+    }
 }
 function recalcFromBeforeTax() {
     const beforeInput = document.getElementById('before_tax');
@@ -145,7 +185,8 @@ function recalcFromBeforeTax() {
         return;
     }
     const before = parseFloat(raw) || 0;
-    const vat = parseFloat((before * VAT_RATE).toFixed(2));
+    const vatRate = getVatRate();
+    const vat = parseFloat((before * vatRate).toFixed(2));
     vatInput.value = two(vat);
     const total = before + vat;
     totalHidden.value = two(total);
