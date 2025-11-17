@@ -73,19 +73,9 @@ static string BuildFormHtml()
         </div>
 
         <div class=""row"">
-            <div class=""form-group"" style=""flex: 1;"">
+            <div class=""form-group"" style=""flex: 0 0 48%;"">
                 <label for=""customer"">اسم العميل</label>
                 <input type=""text"" id=""customer"" name=""customer"" placeholder=""اسم العميل"">
-            </div>
-            <div class=""form-group"" style=""flex: 1;"">
-                <div class=""toggle-group"">
-                    <input type=""checkbox"" id=""custom_tax"" name=""custom_tax"" onchange=""toggleCustomTax()"">
-                    <label for=""custom_tax"">ضريبة مخصصة</label>
-                </div>
-                <div id=""custom_tax_percentage_container"" style=""display: none; margin-top: 8px;"">
-                    <label for=""custom_tax_percentage"">نسبة الضريبة المخصصة (%)</label>
-                    <input type=""number"" id=""custom_tax_percentage"" name=""custom_tax_percentage"" step=""0.01"" min=""0"" max=""100"" value=""15"" class=""num no-spin"" inputmode=""decimal"" oninput=""updateTaxRate()"">
-                </div>
             </div>
         </div>
 
@@ -95,8 +85,21 @@ static string BuildFormHtml()
                 <input type=""number"" id=""before_tax"" name=""before_tax"" step=""0.01"" class=""num no-spin"" inputmode=""decimal"" required>
             </div>
             <div class=""form-group"">
-                <label for=""vat_amount"">مبلغ الضريبة *</label>
-                <input type=""number"" id=""vat_amount"" name=""vat_amount"" step=""0.01"" class=""num no-spin"" inputmode=""decimal"" required>
+                <div style=""display: flex; gap: 8px; align-items: center; direction: rtl; margin-bottom: 6px;"">
+                    <label for=""vat_amount"" style=""margin: 0;"">مبلغ الضريبة *</label>
+                    <div class=""toggle-group"" style=""margin: 0;"">
+                        <input type=""checkbox"" id=""custom_tax"" name=""custom_tax"" onchange=""toggleCustomTax()"">
+                        <label for=""custom_tax"" style=""white-space: nowrap; margin: 0;"">مخصصة</label>
+                    </div>
+                </div>
+                <div style=""display: flex; gap: 4px; direction: rtl;"">
+                    <div id=""custom_tax_percentage_container"" style=""display: none; flex: 0 0 80px;"">
+                        <input type=""number"" id=""custom_tax_percentage"" name=""custom_tax_percentage"" step=""0.01"" min=""0"" max=""100"" value=""15"" class=""num no-spin"" inputmode=""decimal"" oninput=""updateTaxRate()"" placeholder=""%"" style=""width: 100%; direction: rtl; text-align: right;"">
+                    </div>
+                    <div id=""vat_amount_container"" style=""flex: 1;"">
+                        <input type=""number"" id=""vat_amount"" name=""vat_amount"" step=""0.01"" class=""num no-spin"" inputmode=""decimal"" required style=""width: 100%;"">
+                    </div>
+                </div>
             </div>
             <div class=""form-group"">
                 <label>الإجمالي شامل الضريبة (معاينة)</label>
