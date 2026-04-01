@@ -57,7 +57,7 @@ static string BuildFormHtml()
 <body>
 <div class=""wrap"">
     <h1 style=""display: flex; justify-content: space-between; align-items: center; flex-direction: row-reverse;"">
-        <span>Genius Computers</span>
+        <span>generate phase 1 qr code</span>
         <span>إنشاء فاتورة ZATCA Phase 1</span>
     </h1>
     <form method=""POST"" action=""/invoice/generate"">
